@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>QR Vehicle Options</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div class="vehicle-menu-container">
+            <div class="menu-header">
+                <button class="back-btn hidden">←</button>
+                <h1>QR Vehicle Options</h1>
+            </div>
+
+            <div id="main-menu">
+                <div class="menu-options">
+                    <button class="menu-btn" data-menu="extras">Extras</button>
+                    <button class="menu-btn" data-menu="liveries">
+                        Liveries
+                    </button>
+                    <button class="menu-btn" data-menu="colors">Colors</button>
+                </div>
+                <div class="menu-actions">
+                    <button class="action-btn wash-vehicle">
+                        Wash Vehicle
+                    </button>
+                    <button class="action-btn fix-vehicle">Fix Vehicle</button>
+                    <button class="action-btn window-tint">Window Tint</button>
+                </div>
+            </div>
+
+            <div id="extras-menu" class="sub-menu hidden">
+                <div class="extras-grid">
+                    <button class="extra-toggle" data-extra="1">Extra 1</button>
+                    <button class="extra-toggle" data-extra="2">Extra 2</button>
+                    <button class="extra-toggle" data-extra="3">Extra 3</button>
+                    <button class="extra-toggle" data-extra="4">Extra 4</button>
+                    <button class="extra-toggle" data-extra="5">Extra 5</button>
+                    <button class="extra-toggle" data-extra="6">Extra 6</button>
+                    <button class="extra-toggle" data-extra="7">Extra 7</button>
+                    <button class="extra-toggle" data-extra="8">Extra 8</button>
+                    <button class="extra-toggle" data-extra="9">Extra 9</button>
+                    <button class="extra-toggle" data-extra="10">
+                        Extra 10
+                    </button>
+                    <button class="extra-toggle" data-extra="11">
+                        Extra 11
+                    </button>
+                    <button class="extra-toggle" data-extra="12">
+                        Extra 12
+                    </button>
+                </div>
+                <button class="remove-all-extras">Remove All Extras</button>
+            </div>
+
+            <div id="liveries-menu" class="sub-menu hidden">
+                <div id="liveries-container" class="liveries-grid"></div>
+                <button class="remove-all-liveries">Remove All Liveries</button>
+            </div>
+
+            <div id="colors-menu" class="sub-menu hidden">
+                <div class="colors-container">
+                    <h3 class="category-header">Primary Colors</h3>
+                    <div id="primary-colors"></div>
+                </div>
+                <div class="colors-container">
+                    <h3 class="category-header">Secondary Colors</h3>
+                    <div id="secondary-colors"></div>
+                </div>
+                <button class="remove-all-colors">Reset Colors</button>
+            </div>
+        </div>
+
+        <script src="main.js"></script>
+    </body>
+</html>
