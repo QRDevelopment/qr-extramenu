@@ -1,10 +1,7 @@
--- Initialize framework
 local Framework = {}
 
--- Load config from shared file
 local Config = _G.Config
 
--- Load framework based on config
 local function LoadFramework()
     if Config.Framework == 'qbcore' then
         local QBCore = exports['qb-core']:GetCoreObject()
@@ -37,20 +34,17 @@ local function LoadFramework()
     return true
 end
 
--- Initialize framework
 if not LoadFramework() then
     print('Failed to load framework: ' .. Config.Framework)
     return
 end
 
--- Debug function
 local function Debug(message, ...)
     local args = {...}
     local formattedMsg = string.format(message, table.unpack(args))
     print("^2[QR-DEBUG]^7 " .. formattedMsg)
 end
 
--- Check if player has permission to use the menu
 local function HasPermission(jobName)
     Debug("Checking job permission for: %s", tostring(jobName))
     for _, allowedJob in ipairs(Config.AllowedJobs) do
@@ -61,32 +55,91 @@ local function HasPermission(jobName)
     return false
 end
 
--- Check if player is near interaction point
 local function IsPlayerNearLocation(playerCoords, location)
     return #(playerCoords - location.coords) <= Config.InteractDistance
 end
 
--- Track current interaction location and menu state
 local currentInteractionLocation = nil
 local isMenuOpen = false
 local frozenVehicle = nil
 
--- Function to force vehicle update
+
 local function ForceVehicleUpdate(vehicle)
     if vehicle and vehicle ~= 0 then
         SetVehicleModKit(vehicle, 0)
         SetEntityAsMissionEntity(vehicle, true, true)
         SetVehicleHasBeenOwnedByPlayer(vehicle, true)
 
-        -- Force a small movement to update rendering
+
         local pos = GetEntityCoords(vehicle)
         SetEntityCoords(vehicle, pos.x, pos.y, pos.z + 0.001, false, false, false, false)
 
-        -- Additional force update for mods
         SetVehicleModKit(vehicle, 0)
         local livery = GetVehicleMod(vehicle, 48)
         SetVehicleMod(vehicle, 48, livery, false)
     end
+end
+
+RegisterNUICallback('setCallsignNumbers', function(data, cb)
+    local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
+    if vehicle ~= 0 then
+        SetVehicleModKit(vehicle, 0)
+
+        -- Set the mod slots for callsign numbers
+        SetVehicleMod(vehicle, 8, data.number1, false)
+        SetVehicleMod(vehicle, 9, data.number2, false)
+        SetVehicleMod(vehicle, 10, data.number3, false)
+
+        -- Create string representation for display
+        local callsignText = ""
+        if data.number1 >= 0 then callsignText = callsignText .. data.number1 end
+        if data.number2 >= 0 then callsignText = callsignText .. data.number2 end
+        if data.number3 >= 0 then callsignText = callsignText .. data.number3 end
+
+        ForceVehicleUpdate(vehicle)
+        Framework.Notify("Callsign set to: " .. callsignText, 'success')
+
+        -- Notify server of change
+        TriggerServerEvent('qr-extramenu:modifyVehicle', 'callsign', {
+            callsign = callsignText,
+            callsignNumbers = {data.number1, data.number2, data.number3}
+        })
+    end
+    cb('ok')
+end)
+
+RegisterNUICallback('clearCallsignNumbers', function(_, cb)
+    local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
+    if vehicle ~= 0 then
+        SetVehicleModKit(vehicle, 0)
+
+        -- Clear the mod slots
+        SetVehicleMod(vehicle, 8, -1, false)
+        SetVehicleMod(vehicle, 9, -1, false)
+        SetVehicleMod(vehicle, 10, -1, false)
+
+        ForceVehicleUpdate(vehicle)
+        Framework.Notify("Callsign removed", 'success')
+
+        -- Notify server of change
+        TriggerServerEvent('qr-extramenu:modifyVehicle', 'callsign', {
+            callsign = "",
+            callsignNumbers = {-1, -1, -1}
+        })
+    end
+    cb('ok')
+end)
+
+local function getCurrentCallsignNumbers(vehicle)
+    if vehicle == 0 then return {-1, -1, -1} end
+
+    SetVehicleModKit(vehicle, 0)
+
+    return {
+        GetVehicleMod(vehicle, 8),
+        GetVehicleMod(vehicle, 9),
+        GetVehicleMod(vehicle, 10)
+    }
 end
 
 -- Function to get vehicle state
@@ -110,7 +163,8 @@ local function GetVehicleState(vehicle)
                 count = GetVehicleRoofLiveryCount(vehicle)
             }
         },
-        windowTint = GetVehicleWindowTint(vehicle)
+        windowTint = GetVehicleWindowTint(vehicle),
+        callsignNumbers = getCurrentCallsignNumbers(vehicle)
     }
 
     -- Check for mod-based liveries first (mod slot 48)

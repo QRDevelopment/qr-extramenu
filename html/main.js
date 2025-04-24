@@ -1,124 +1,5 @@
-function populateLiveries(state) {
-  const container = document.getElementById("liveries-container");
-  container.innerHTML = ""; // Clear existing liveries
-
-  if (!state || !state.livery) return;
-
-  const { current, count, names } = state.livery;
-
-  // Add regular liveries if available
-  if (count > 0) {
-    for (let i = 0; i < count; i++) {
-      const button = document.createElement("button");
-      button.className = `livery-item${current === i ? " active" : ""}`;
-      button.textContent = names[i] || `Livery ${i + 1}`;
-      button.dataset.liveryIndex = i;
-      button.dataset.isRoof = "false";
-
-      button.addEventListener("click", () => {
-        // Remove active class from all livery buttons
-        document
-          .querySelectorAll(".livery-item")
-          .forEach((btn) => btn.classList.remove("active"));
-        // Add active class to clicked button
-        button.classList.add("active");
-
-        // Send livery update to FiveM
-        fetch(`https://qr-extramenu/changeLivery`, {
-          method: "POST",
-          body: JSON.stringify({
-            liveryIndex: i,
-            isRoof: false,
-          }),
-        });
-      });
-
-      container.appendChild(button);
-    }
-  }
-
-  // Add roof liveries if available
-  if (state.livery.roof && state.livery.roof.count > 0) {
-    const roofLiveriesHeader = document.createElement("h3");
-    roofLiveriesHeader.className = "category-header";
-    roofLiveriesHeader.textContent = "Roof Liveries";
-    container.appendChild(roofLiveriesHeader);
-
-    for (let i = 0; i < state.livery.roof.count; i++) {
-      const button = document.createElement("button");
-      button.className = `livery-item${state.livery.roof.current === i ? " active" : ""}`;
-      button.textContent = `Roof Livery ${i + 1}`;
-      button.dataset.liveryIndex = i;
-      button.dataset.isRoof = "true";
-
-      button.addEventListener("click", () => {
-        // Remove active class from roof livery buttons
-        document
-          .querySelectorAll('.livery-item[data-is-roof="true"]')
-          .forEach((btn) => btn.classList.remove("active"));
-        // Add active class to clicked button
-        button.classList.add("active");
-
-        // Send roof livery update to FiveM
-        fetch(`https://qr-extramenu/changeLivery`, {
-          method: "POST",
-          body: JSON.stringify({
-            liveryIndex: i,
-            isRoof: true,
-          }),
-        });
-      });
-
-      container.appendChild(button);
-    }
-  }
-
-  // Show message if no liveries available
-  if (count <= 0 && (!state.livery.roof || state.livery.roof.count <= 0)) {
-    const noLiveriesMsg = document.createElement("div");
-    noLiveriesMsg.className = "no-liveries-message";
-    noLiveriesMsg.textContent = "No liveries available for this vehicle";
-    container.appendChild(noLiveriesMsg);
-  }
-}
-
-// Update the updateVehicleState function to use the new populateLiveries
-function updateVehicleState(state) {
-  if (!state) return;
-
-  // Clear all previous active states first
-  clearActiveStates();
-
-  // Update extras
-  if (state.extras) {
-    document.querySelectorAll(".extra-toggle").forEach((btn) => {
-      const extraId = btn.dataset.extra;
-      if (state.extras[extraId]) {
-        btn.classList.add("active");
-      }
-    });
-  }
-
-  // Update colors
-  if (state.colors) {
-    // Update primary color buttons
-    document.querySelectorAll('[data-type="primary"]').forEach((btn) => {
-      if (parseInt(btn.dataset.colorIndex) === state.colors.primary) {
-        btn.classList.add("active");
-      }
-    });
-
-    // Update secondary color buttons
-    document.querySelectorAll('[data-type="secondary"]').forEach((btn) => {
-      if (parseInt(btn.dataset.colorIndex) === state.colors.secondary) {
-        btn.classList.add("active");
-      }
-    });
-  }
-
-  // Update liveries with full state object
-  populateLiveries(state);
-}
+// Global variables for callsign digits
+let callsignDigits = [-1, -1, -1]; // Default to -1 which means "none"
 
 // Color Categories
 const FIVEM_COLORS = {
@@ -229,7 +110,100 @@ const FIVEM_COLORS = {
   ],
 };
 
-// Create Color Grid
+// Core Functions
+function updateCallsignUI() {
+  for (let i = 1; i <= 3; i++) {
+    const value = callsignDigits[i - 1];
+    const displayValue = value === -1 ? "-" : value.toString();
+    const digitInput = document.getElementById(`digit-${i}`);
+    if (digitInput) {
+      digitInput.value = displayValue;
+    }
+  }
+
+  const previewText = callsignDigits
+    .map((d) => (d === -1 ? "-" : d.toString()))
+    .join("");
+  const previewElement = document.getElementById("preview-text");
+  if (previewElement) {
+    previewElement.textContent = previewText;
+  }
+}
+
+function populateLiveries(state) {
+  const container = document.getElementById("liveries-container");
+  if (!container || !state || !state.livery) return;
+
+  container.innerHTML = "";
+  const { current, count, names } = state.livery;
+
+  if (count > 0) {
+    for (let i = 0; i < count; i++) {
+      const button = document.createElement("button");
+      button.className = `livery-item${current === i ? " active" : ""}`;
+      button.textContent = names[i] || `Livery ${i + 1}`;
+      button.dataset.liveryIndex = i;
+      button.dataset.isRoof = "false";
+
+      button.addEventListener("click", () => {
+        document
+          .querySelectorAll(".livery-item")
+          .forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        fetch(`https://qr-extramenu/changeLivery`, {
+          method: "POST",
+          body: JSON.stringify({
+            liveryIndex: i,
+            isRoof: false,
+          }),
+        });
+      });
+
+      container.appendChild(button);
+    }
+  }
+
+  if (state.livery.roof && state.livery.roof.count > 0) {
+    const roofLiveriesHeader = document.createElement("h3");
+    roofLiveriesHeader.className = "category-header";
+    roofLiveriesHeader.textContent = "Roof Liveries";
+    container.appendChild(roofLiveriesHeader);
+
+    for (let i = 0; i < state.livery.roof.count; i++) {
+      const button = document.createElement("button");
+      button.className = `livery-item${state.livery.roof.current === i ? " active" : ""}`;
+      button.textContent = `Roof Livery ${i + 1}`;
+      button.dataset.liveryIndex = i;
+      button.dataset.isRoof = "true";
+
+      button.addEventListener("click", () => {
+        document
+          .querySelectorAll('.livery-item[data-is-roof="true"]')
+          .forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        fetch(`https://qr-extramenu/changeLivery`, {
+          method: "POST",
+          body: JSON.stringify({
+            liveryIndex: i,
+            isRoof: true,
+          }),
+        });
+      });
+
+      container.appendChild(button);
+    }
+  }
+
+  if (count <= 0 && (!state.livery.roof || state.livery.roof.count <= 0)) {
+    const noLiveriesMsg = document.createElement("div");
+    noLiveriesMsg.className = "no-liveries-message";
+    noLiveriesMsg.textContent = "No liveries available for this vehicle";
+    container.appendChild(noLiveriesMsg);
+  }
+}
+
 function createColorGrid(colors, type, category) {
   const grid = document.createElement("div");
   grid.className = "color-grid";
@@ -243,15 +217,12 @@ function createColorGrid(colors, type, category) {
     button.dataset.type = type;
 
     button.addEventListener("click", () => {
-      // Remove active class from all buttons in the parent container
       button
         .closest(".colors-container")
         .querySelectorAll(".color-toggle")
         .forEach((btn) => btn.classList.remove("active"));
-      // Add active class to clicked button
       button.classList.add("active");
 
-      // Send color update to FiveM
       fetch(`https://qr-extramenu/changeColor`, {
         method: "POST",
         body: JSON.stringify({
@@ -267,16 +238,16 @@ function createColorGrid(colors, type, category) {
   return grid;
 }
 
-// Populate Colors
 function populateColors() {
   const primaryContainer = document.getElementById("primary-colors");
   const secondaryContainer = document.getElementById("secondary-colors");
+
+  if (!primaryContainer || !secondaryContainer) return;
 
   primaryContainer.innerHTML = "";
   secondaryContainer.innerHTML = "";
 
   Object.entries(FIVEM_COLORS).forEach(([category, colors]) => {
-    // Primary Colors
     const primaryCategoryHeader = document.createElement("h3");
     primaryCategoryHeader.className = "category-header";
     primaryCategoryHeader.textContent =
@@ -286,7 +257,6 @@ function populateColors() {
     const primaryGrid = createColorGrid(colors, "primary", category);
     primaryContainer.appendChild(primaryGrid);
 
-    // Secondary Colors
     const secondaryCategoryHeader = document.createElement("h3");
     secondaryCategoryHeader.className = "category-header";
     secondaryCategoryHeader.textContent =
@@ -298,58 +268,148 @@ function populateColors() {
   });
 }
 
-// Clear all active states
 function clearActiveStates() {
-  document.querySelectorAll(".color-toggle.active").forEach((btn) => {
-    btn.classList.remove("active");
-  });
-  document.querySelectorAll(".extra-toggle.active").forEach((btn) => {
-    btn.classList.remove("active");
-  });
-  document.querySelectorAll(".livery-item.active").forEach((btn) => {
-    btn.classList.remove("active");
+  document.querySelectorAll(".active").forEach((element) => {
+    element.classList.remove("active");
   });
 }
 
-// Menu Navigation
-function showMenu(menuId) {
-  document
-    .querySelectorAll(".sub-menu, #main-menu")
-    .forEach((menu) => menu.classList.add("hidden"));
-  document
-    .getElementById(menuId ? menuId : "main-menu")
-    .classList.remove("hidden");
-  document.querySelector(".back-btn").classList.toggle("hidden", !menuId);
-}
+function updateVehicleState(state) {
+  if (!state) return;
 
-// Function to close menu
-function closeMenu() {
-  document.querySelector(".vehicle-menu-container").style.display = "none";
-  // Reset to main menu when closing
-  showMenu();
-  // Clear all active states
   clearActiveStates();
-  // Notify FiveM
-  fetch(`https://qr-extramenu/closeMenu`, {
-    method: "POST",
-  });
+
+  if (state.extras) {
+    document.querySelectorAll(".extra-toggle").forEach((btn) => {
+      const extraId = btn.dataset.extra;
+      if (state.extras[extraId]) {
+        btn.classList.add("active");
+      }
+    });
+  }
+
+  if (state.windowTint !== undefined) {
+    document.querySelectorAll(".tint-option").forEach((btn) => {
+      if (parseInt(btn.dataset.tint) === state.windowTint) {
+        btn.classList.add("active");
+      }
+    });
+  }
+
+  if (state.colors) {
+    document.querySelectorAll('[data-type="primary"]').forEach((btn) => {
+      if (parseInt(btn.dataset.colorIndex) === state.colors.primary) {
+        btn.classList.add("active");
+      }
+    });
+
+    document.querySelectorAll('[data-type="secondary"]').forEach((btn) => {
+      if (parseInt(btn.dataset.colorIndex) === state.colors.secondary) {
+        btn.classList.add("active");
+      }
+    });
+  }
+
+  populateLiveries(state);
 }
 
-// Event Listeners
-document.addEventListener("DOMContentLoaded", () => {
-  // Menu Navigation
-  document.querySelectorAll(".menu-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      showMenu(`${btn.dataset.menu}-menu`);
+function initCallsignMenu(vehicleState) {
+  if (vehicleState && vehicleState.callsignNumbers) {
+    callsignDigits = vehicleState.callsignNumbers;
+  } else {
+    callsignDigits = [-1, -1, -1];
+  }
+  updateCallsignUI();
+}
+
+// Initialize menu system
+document.addEventListener("DOMContentLoaded", function () {
+  const menuContainer = document.querySelector(".vehicle-menu-container");
+  if (menuContainer) {
+    menuContainer.style.display = "none";
+  }
+
+  populateColors();
+  updateCallsignUI();
+
+  function showMenu(menuId) {
+    document.querySelectorAll(".sub-menu, #main-menu").forEach((menu) => {
+      menu.classList.add("hidden");
+    });
+
+    if (menuId) {
+      const targetMenu = document.getElementById(menuId);
+      if (targetMenu) {
+        targetMenu.classList.remove("hidden");
+        document.querySelector(".back-btn").classList.remove("hidden");
+      }
+    } else {
+      document.getElementById("main-menu").classList.remove("hidden");
+      document.querySelector(".back-btn").classList.add("hidden");
+    }
+  }
+
+  document.querySelectorAll(".menu-btn").forEach((button) => {
+    button.addEventListener("click", function () {
+      const menuType = this.getAttribute("data-menu");
+      showMenu(`${menuType}-menu`);
     });
   });
 
-  // Back Button
-  document
-    .querySelector(".back-btn")
-    .addEventListener("click", () => showMenu());
+  const backBtn = document.querySelector(".back-btn");
+  if (backBtn) {
+    backBtn.addEventListener("click", () => showMenu());
+  }
 
-  // Extra Toggles
+  document.querySelectorAll(".digit-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const digitIndex = parseInt(this.dataset.digit) - 1;
+      const isPlus = this.classList.contains("plus");
+
+      if (isPlus) {
+        callsignDigits[digitIndex] =
+          ((callsignDigits[digitIndex] + 2) % 11) - 1;
+      } else {
+        callsignDigits[digitIndex] =
+          ((callsignDigits[digitIndex] + 10) % 11) - 0;
+      }
+
+      updateCallsignUI();
+    });
+  });
+
+  const applyCallsignBtn = document.querySelector(".apply-callsign");
+  if (applyCallsignBtn) {
+    applyCallsignBtn.addEventListener("click", () => {
+      fetch(`https://${GetParentResourceName()}/setCallsignNumbers`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          number1: callsignDigits[0],
+          number2: callsignDigits[1],
+          number3: callsignDigits[2],
+        }),
+      });
+    });
+  }
+
+  const removeCallsignBtn = document.querySelector(".remove-callsign");
+  if (removeCallsignBtn) {
+    removeCallsignBtn.addEventListener("click", () => {
+      callsignDigits = [-1, -1, -1];
+      updateCallsignUI();
+
+      fetch(`https://${GetParentResourceName()}/clearCallsignNumbers`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    });
+  }
+
   document.querySelectorAll(".extra-toggle").forEach((btn) => {
     btn.addEventListener("click", () => {
       btn.classList.toggle("active");
@@ -363,93 +423,105 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Window tint button handler
-  document.querySelector(".window-tint").addEventListener("click", () => {
-    fetch(`https://qr-extramenu/setWindowTint`, {
-      method: "POST",
-      body: JSON.stringify({
-        tint: 3, // 3 is light smoke
-      }),
+  document.querySelectorAll(".tint-option").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tint-option").forEach((tintBtn) => {
+        tintBtn.classList.remove("active");
+      });
+      btn.classList.add("active");
+
+      fetch(`https://qr-extramenu/setWindowTint`, {
+        method: "POST",
+        body: JSON.stringify({
+          tint: parseInt(btn.dataset.tint),
+        }),
+      });
     });
   });
 
-  // Remove All Extras
-  document.querySelector(".remove-all-extras").addEventListener("click", () => {
-    document.querySelectorAll(".extra-toggle").forEach((btn) => {
-      btn.classList.remove("active");
+  const removeAllExtrasBtn = document.querySelector(".remove-all-extras");
+  if (removeAllExtrasBtn) {
+    removeAllExtrasBtn.addEventListener("click", () => {
+      document.querySelectorAll(".extra-toggle").forEach((btn) => {
+        btn.classList.remove("active");
+      });
+      fetch(`https://qr-extramenu/removeAllExtras`, {
+        method: "POST",
+      });
     });
-    fetch(`https://qr-extramenu/removeAllExtras`, {
-      method: "POST",
-    });
-  });
+  }
 
-  // Remove All Colors (Reset to Metallic Black)
-  document.querySelector(".remove-all-colors").addEventListener("click", () => {
-    document.querySelectorAll(".color-toggle").forEach((btn) => {
-      btn.classList.remove("active");
+  const removeAllColorsBtn = document.querySelector(".remove-all-colors");
+  if (removeAllColorsBtn) {
+    removeAllColorsBtn.addEventListener("click", () => {
+      document.querySelectorAll(".color-toggle").forEach((btn) => {
+        btn.classList.remove("active");
+      });
+      fetch(`https://qr-extramenu/resetColors`, {
+        method: "POST",
+      });
     });
-    fetch(`https://qr-extramenu/resetColors`, {
-      method: "POST",
-    });
-  });
+  }
 
-  // Remove All Liveries
-  document
-    .querySelector(".remove-all-liveries")
-    .addEventListener("click", () => {
+  const removeAllLiveriesBtn = document.querySelector(".remove-all-liveries");
+  if (removeAllLiveriesBtn) {
+    removeAllLiveriesBtn.addEventListener("click", () => {
       document.querySelectorAll(".livery-item").forEach((btn) => {
         btn.classList.remove("active");
       });
       fetch(`https://qr-extramenu/changeLivery`, {
         method: "POST",
         body: JSON.stringify({
-          liveryIndex: 0, // Set to 0 for no livery
+          liveryIndex: 0,
           isRoof: false,
         }),
       });
     });
+  }
 
-  // Vehicle Actions
-  document.querySelector(".wash-vehicle").addEventListener("click", () => {
-    fetch(`https://qr-extramenu/washVehicle`, {
-      method: "POST",
+  const washVehicleBtn = document.querySelector(".wash-vehicle");
+  if (washVehicleBtn) {
+    washVehicleBtn.addEventListener("click", () => {
+      fetch(`https://qr-extramenu/washVehicle`, {
+        method: "POST",
+      });
     });
-  });
+  }
 
-  document.querySelector(".fix-vehicle").addEventListener("click", () => {
-    fetch(`https://qr-extramenu/fixVehicle`, {
-      method: "POST",
+  const fixVehicleBtn = document.querySelector(".fix-vehicle");
+  if (fixVehicleBtn) {
+    fixVehicleBtn.addEventListener("click", () => {
+      fetch(`https://qr-extramenu/fixVehicle`, {
+        method: "POST",
+      });
     });
-  });
+  }
 
-  // Initialize
-  document.querySelector(".vehicle-menu-container").style.display = "none";
-  populateColors();
-});
+  window.addEventListener("message", (event) => {
+    if (event.data.type === "openMenu") {
+      menuContainer.style.display = "block";
+      showMenu();
+      clearActiveStates();
 
-// Handle Messages from FiveM
-window.addEventListener("message", (event) => {
-  if (event.data.type === "openMenu") {
-    document.querySelector(".vehicle-menu-container").style.display = "block";
-    showMenu();
-
-    // Clear previous state and update with new vehicle state
-    clearActiveStates();
-    if (event.data.vehicleState) {
-      updateVehicleState(event.data.vehicleState);
+      if (event.data.vehicleState) {
+        updateVehicleState(event.data.vehicleState);
+        initCallsignMenu(event.data.vehicleState);
+      }
+    } else if (event.data.type === "closeMenu") {
+      menuContainer.style.display = "none";
+      showMenu();
+      clearActiveStates();
     }
-  }
+  });
 
-  if (event.data.type === "closeMenu") {
-    document.querySelector(".vehicle-menu-container").style.display = "none";
-    showMenu(); // Reset to main menu
-    clearActiveStates(); // Clear all active states
-  }
-});
-
-// Handle Escape Key
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    closeMenu();
-  }
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      menuContainer.style.display = "none";
+      showMenu();
+      clearActiveStates();
+      fetch(`https://qr-extramenu/closeMenu`, {
+        method: "POST",
+      });
+    }
+  });
 });

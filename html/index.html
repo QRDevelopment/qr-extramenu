@@ -3,6 +3,10 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Boldonse&display=swap"
+            rel="stylesheet"
+        />
         <title>QR Vehicle Options</title>
         <link rel="stylesheet" href="style.css" />
     </head>
@@ -15,18 +19,21 @@
 
             <div id="main-menu">
                 <div class="menu-options">
-                    <button class="menu-btn" data-menu="extras">Extras</button>
+                    <button class="menu-btn" data-menu="extras">EXTRA</button>
                     <button class="menu-btn" data-menu="liveries">
-                        Liveries
+                        LIVERIES
                     </button>
-                    <button class="menu-btn" data-menu="colors">Colors</button>
+                    <button class="menu-btn" data-menu="colors">COLORS</button>
+                    <button class="menu-btn" data-menu="windowtint">
+                        WINDOW TINT
+                    </button>
+                    <button class="menu-btn" data-menu="callsigns">
+                        CALLSIGN
+                    </button>
                 </div>
                 <div class="menu-actions">
-                    <button class="action-btn wash-vehicle">
-                        Wash Vehicle
-                    </button>
-                    <button class="action-btn fix-vehicle">Fix Vehicle</button>
-                    <button class="action-btn window-tint">Window Tint</button>
+                    <button class="wash-btn wash-vehicle">WASH</button>
+                    <button class="fix-btn fix-vehicle">FIX</button>
                 </div>
             </div>
 
@@ -52,6 +59,74 @@
                     </button>
                 </div>
                 <button class="remove-all-extras">Remove All Extras</button>
+            </div>
+
+            <div id="windowtint-menu" class="sub-menu hidden">
+                <div class="tint-options-grid">
+                    <button class="tint-option" data-tint="0">None</button>
+                    <button class="tint-option" data-tint="1">
+                        Pure Black
+                    </button>
+                    <button class="tint-option" data-tint="2">
+                        Dark Smoke
+                    </button>
+                    <button class="tint-option" data-tint="3">
+                        Light Smoke
+                    </button>
+                </div>
+                <button class="remove-window-tint">Remove Window Tint</button>
+            </div>
+
+            <!-- Replace your existing callsigns-menu div with this one -->
+            <div id="callsigns-menu" class="sub-menu hidden">
+                <div class="callsign-digits">
+                    <div class="digit-container">
+                        <button class="digit-btn plus" data-digit="1">↑</button>
+                        <input
+                            type="text"
+                            id="digit-1"
+                            class="digit-input"
+                            value="-"
+                            readonly
+                        />
+                        <button class="digit-btn minus" data-digit="1">
+                            ↓
+                        </button>
+                    </div>
+
+                    <div class="digit-container">
+                        <button class="digit-btn plus" data-digit="2">↑</button>
+                        <input
+                            type="text"
+                            id="digit-2"
+                            class="digit-input"
+                            value="-"
+                            readonly
+                        />
+                        <button class="digit-btn minus" data-digit="2">
+                            ↓
+                        </button>
+                    </div>
+
+                    <div class="digit-container">
+                        <button class="digit-btn plus" data-digit="3">↑</button>
+                        <input
+                            type="text"
+                            id="digit-3"
+                            class="digit-input"
+                            value="-"
+                            readonly
+                        />
+                        <button class="digit-btn minus" data-digit="3">
+                            ↓
+                        </button>
+                    </div>
+                </div>
+
+                <div class="callsign-actions">
+                    <button class="apply-callsign">Apply Callsign</button>
+                    <button class="remove-callsign">Remove Callsign</button>
+                </div>
             </div>
 
             <div id="liveries-menu" class="sub-menu hidden">

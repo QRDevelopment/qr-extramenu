@@ -1,7 +1,22 @@
 -- Made by Qycko, brought to you by QR
 Config = {}
 
--- Framework Selection (qbcore, for qbx users use qbcore, esx, esxold)
+Config.AllowAnyVehicle = true
+
+-- List of vehicle models that can have callsigns
+Config.Vehicles = {
+  GetHashKey("police"),
+  GetHashKey("police2"),
+  GetHashKey("police3"),
+  GetHashKey("police4"),
+  GetHashKey("fbi"),
+  GetHashKey("fbi2"),
+  GetHashKey("sheriff"),
+  GetHashKey("sheriff2"),
+    GetHashKey("nkstx"),
+  -- Add any other police/emergency vehicles
+}
+-- Framework Selection (qbcore, esx, esxold)
 Config.Framework = 'qbcore'
 
 -- Interaction Locations
@@ -44,3 +59,10 @@ function GetConfig()
 end
 
 _G.Config = Config
+
+
+-- Notification for callsign feature
+Config.Notifications = Config.Notifications or {}
+Config.Notifications['callsign_applied'] = "Vehicle callsign has been updated"
+Config.Notifications['callsign_removed'] = "Vehicle callsign has been removed"
+Config.Notifications['invalid_vehicle'] = "This vehicle cannot have a callsign"
